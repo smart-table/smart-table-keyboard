@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Data grid keyboard accessibility</title>
+</head>
+<body>
+<h1 id="grid1Label">Keyboard navigation - grid pattern with a table</h1>
+<p>
+  The example below features a table implementing the <a href="https://www.w3.org/TR/wai-aria-practices/#grid">grid
+  pattern</a>.
+  The first row (header) can not be focused. The column with links will automatically focus the contained link whenever
+  focused.
+</p>
+<table role="grid" aria-labelledby="grid1Label">
+  <tbody>
+  <tr data-keyboard-skip="true">
+    <th>
+      Date
+    </th>
+    <th>
+      Type
+    </th>
+    <th>
+      Description
+    </th>
+    <th>
+      Amount
+    </th>
+    <th>
+      Balance
+    </th>
+  </tr>
+  <tr>
+    <td tabindex="-1">
+      01-Jan-16
+    </td>
+    <td tabindex="-1">
+      Deposit
+    </td>
+    <td data-keyboard-selector="a">
+      <a tabindex="-1" href="#">
+        Cash Deposit
+      </a>
+    </td>
+    <td tabindex="-1">
+      $1,000,000.00
+    </td>
+    <td tabindex="-1">
+      $1,000,000.00
+    </td>
+  </tr>
+  <tr>
+    <td tabindex="-1">
+      02-Jan-16
+    </td>
+    <td tabindex="-1">
+      Debit
+    </td>
+    <td data-keyboard-selector="a">
+      <a tabindex="-1" href="#">
+        Down Town Grocery
+      </a>
+    </td>
+    <td tabindex="-1">
+      $250.00
+    </td>
+    <td tabindex="-1">
+      $999,750.00
+    </td>
+  </tr>
+  <tr>
+    <td tabindex="-1">
+      03-Jan-16
+    </td>
+    <td tabindex="-1">
+      Debit
+    </td>
+    <td data-keyboard-selector="a">
+      <a tabindex="-1" href="#">
+        Hot Coffee
+      </a>
+    </td>
+    <td tabindex="-1">
+      $9.00
+    </td>
+    <td tabindex="-1">
+      $999,741.00
+    </td>
+  </tr>
+  <tr>
+    <td tabindex="-1">
+      04-Jan-16
+    </td>
+    <td tabindex="-1">
+      Debit
+    </td>
+    <td data-keyboard-selector="a">
+      <a tabindex="-1" href="#">
+        The Filling Station
+      </a>
+    </td>
+    <td tabindex="-1">
+      $88.00
+    </td>
+    <td tabindex="-1">
+      $999,653.00
+    </td>
+  </tr>
+  <tr>
+    <td tabindex="-1">
+      05-Jan-16
+    </td>
+    <td tabindex="-1">
+      Debit
+    </td>
+    <td data-keyboard-selector="a">
+      <a tabindex="-1" href="#">
+        Tinker's Hardware
+      </a>
+    </td>
+    <td tabindex="-1">
+      $3,421.00
+    </td>
+    <td tabindex="-1">
+      $996,232.00
+    </td>
+  </tr>
+  <tr>
+    <td tabindex="-1">
+      06-Jan-16
+    </td>
+    <td tabindex="-1">
+      Debit
+    </td>
+    <td data-keyboard-selector="a">
+      <a tabindex="-1" href="#">
+        Cutey's Salon
+      </a>
+    </td>
+    <td tabindex="-1">
+      $700.00
+    </td>
+    <td tabindex="-1">
+      $995,532.00
+    </td>
+  </tr>
+  </tbody>
+</table>
+<script src="./dist/bundle.js"></script>
+</body>
+</html>
