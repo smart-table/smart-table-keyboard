@@ -1,5 +1,5 @@
 import zora from 'zora';
-import {keyGrid} from '../lib/keymap';
+import {keyGrid} from '../lib/keygrid';
 
 
 export default zora()

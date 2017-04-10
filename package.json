@@ -3,7 +3,7 @@
   "version": "0.0.1",
   "description": "provide keyboard navigation to widget implementing the grid pattern",
   "main": "./dist/smart-table-keyboard.js",
-  "jsnext:main": "./index.js",
+  "module": "./index.js",
   "scripts": {
     "test": "npm run build:test && cat ./test/dist/test.js | tape-run",
     "build": "rollup -c",

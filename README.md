@@ -1,5 +1,7 @@
 # smart-table-keyboard
 
+[![CircleCI](https://circleci.com/gh/smart-table/smart-table-keyboard.svg?style=svg)](https://circleci.com/gh/smart-table/smart-table-keyboard)
+
 keyboard navigation for widgets implementing the [grid pattern](https://www.w3.org/TR/wai-aria-practices/#grid)
 
 ## Installation
@@ -22,19 +24,19 @@ Assuming you have
 ```Javascript
 import stk from 'smart-table-keyboard';
 
-const grid = document.querySelector('table[role="grid"])' // the the grid widget
+const grid = document.querySelector('table[role="grid"])' // the grid widget
 
 stk(grid,{rowSelector:'tr', cellSelector:'th,td'});
 ```
 Note it does not have to be a table: you can have for example
 
 ```Javascript
-stk(grid,{rowSelector:'[role="row"]', cellSelector:'[role="gridcell"]'});
+stk(document.querySelector('div[role="grid"]',{rowSelector:'[role="row"]', cellSelector:'[role="gridcell"]'});
 ```
 
 ### skipping some elements
 
-You can skip a cell or a row from the navigation by adding the attribute ``data-keyboard-skip="true"`` to the related html element
+You can skip a cell or a row from the navigation by adding the attribute ``data-keyboard-skip="true"`` to the related html element(s)
 
 ### Navigate within a cell
 
@@ -62,4 +64,6 @@ You'll find more [examples](./examples) extracted from the [wai aria guide](http
 ### Issues
 
 **reproducible bugs** only.
+
+## Licence MIT
 

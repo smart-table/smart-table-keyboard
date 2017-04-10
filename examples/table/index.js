@@ -1,3 +1,3 @@
-import keymap from '../../index';
+import keyGrid from '../../index';
 
-keymap(document.querySelector('[role=grid]'));
+keyGrid(document.querySelector('[role=grid]'));

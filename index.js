@@ -1,54 +1,44 @@
-import {keyGrid} from './lib/keymap';
+import {keyGrid} from './lib/keygrid';
+import {dataSkipAttribute} from './lib/util'
 
-export default function gridKeyMap (grid, {cellSelector = 'td,th', rowSelector = 'tr'} ={}) {
+export default function (grid, {rowSelector = 'tr', cellSelector = 'td,th'}={}) {
+  let lastFocus = null;
 
-  let lastFocused = null;
-
-  const kg = keyGrid(grid, {cellSelector, rowSelector});
-
-  grid.addEventListener('keydown', (ev) => {
-    const {target, keyCode} =ev;
-    let newFocused = null;
-    if (keyCode === 37) {//left
-      newFocused = kg.moveLeft(target);
-    } else if (keyCode === 38) {//up
-      newFocused = kg.moveUp(target);
-    } else if (keyCode === 39) {//right
-      newFocused = kg.moveRight(target);
-    } else if (keyCode === 40) {//down
-      newFocused = kg.moveDown(target);
-    }
-    if (newFocused !== null) {
-      if (lastFocused !== null) {
-        lastFocused.setAttribute('tabindex', '-1');
+  const isNavigable = r => r.hasAttribute(dataSkipAttribute) === false;
+  const navigableRows = [...grid.querySelectorAll(rowSelector)].filter(isNavigable);
+  for (let row of navigableRows) {
+    const navigableCells = [...row.querySelectorAll(cellSelector)].filter(isNavigable);
+    for (let c of navigableCells) {
+      if (lastFocus === null) {
+        lastFocus = c;
+        c.setAttribute('tabindex', '0');
+      } else {
+        c.setAttribute('tabindex', '-1');
       }
-      newFocused.focus();
-      newFocused.setAttribute('tabindex', '0');
-      lastFocused = newFocused;
+    }
+  }
+
+  const kg = keyGrid(grid, {rowSelector, cellSelector});
+
+  grid.addEventListener('keydown', ({target, keyCode}) => {
+    let newCell = null;
+    if (keyCode === 37) {
+      newCell = kg.moveLeft(target);
+    } else if (keyCode === 38) {
+      newCell = kg.moveUp(target);
+    } else if (keyCode === 39) {
+      newCell = kg.moveRight(target);
+    } else if (keyCode === 40) {
+      newCell = kg.moveDown(target);
+    }
+
+    if (newCell !== null) {
+      newCell.focus();
+      if (lastFocus !== null) {
+        lastFocus.setAttribute('tabindex', '-1');
+      }
+      newCell.setAttribute('tabindex', '0');
+      lastFocus = newCell;
     }
   });
-
-  let hasNotSkipAttribute = el => el.hasAttribute('data-keyboard-skip') === false;
-  const rows = Array.from(grid.querySelectorAll(rowSelector)).filter(hasNotSkipAttribute);
-  for (let r of rows) {
-    const cells = [...r.querySelectorAll(cellSelector)].filter(hasNotSkipAttribute);
-    for (let c of cells) {
-      if (lastFocused === null) {
-        lastFocused = c;
-      }
-      c.setAttribute('tabindex', '-1');
-    }
-  }
-
-  const cells = [...grid.querySelectorAll(cellSelector)];
-  const composites = cells.filter(c => c.hasAttribute('data-keyboard-selector') === true);
-  for (let c of composites) {
-    c.addEventListener('focus', ev => {
-      const selector = c.getAttribute('data-keyboard-selector');
-      const item = c.querySelector(selector);
-      item.focus();
-    });
-  }
-
-  lastFocused.setAttribute('tabindex', '0');
 }

@@ -5,234 +5,222 @@
 }(this, (function () { 'use strict';
 
 const findContainer = (element, selector) => element.matches(selector) === true ? element : findContainer(element.parentElement, selector);
+const dataSelectorAttribute = 'data-keyboard-selector';
+const dataSkipAttribute = 'data-keyboard-skip';
+const valFunc = val => () => val;
 
-function keyGrid (grid, {cellSelector, rowSelector}) {
-
-  const doesSkipKeyboard = el => el.getAttribute('data-keyboard-skip') === 'true';
-
-  const createGrid = (grid) => {
-    const instance = {};
-    Object.defineProperty(instance, 'rows', {
-      get(){
-        return grid.rows !== void 0 ? grid.rows : [...grid.querySelectorAll(rowSelector)]
-      }
-    });
-
-    Object.defineProperty(instance, 'element', {value: grid});
-    return instance;
-  };
-
-  const gridWrapped = createGrid(grid);
-
-  const rowProto = {
-    moveUp(){
-      const rowIndex = this.rowIndex;
-      const newRowIndex = Math.max(rowIndex - 1, 0);
-      const newRow = gridWrapped.rows[newRowIndex];
-      if (doesSkipKeyboard(newRow) === false) {
-        return newRow;
-      } else if (newRowIndex === 0) {
-        return this.element;
-      } else {
-        return createRow(newRow).moveUp();
-      }
-    },
-    moveDown(){
-      const rowIndex = this.rowIndex;
-      const newRowIndex = Math.min(rowIndex + 1, gridWrapped.rows.length - 1);
-      const newRow = gridWrapped.rows[newRowIndex];
-      if (doesSkipKeyboard(newRow) === false) {
-        return newRow;
-      } else if (newRowIndex === gridWrapped.rows.length - 1) {
-        return this.element;
-      } else {
-        return createRow(newRow).moveDown();
-      }
-    }
-  };
-
-  function createRow (rowElement) {
-    return Object.create(rowProto, {
-      cells: {
-        get(){
-          return rowElement.cells !== void 0 ? [...rowElement.cells] : [...rowElement.querySelectorAll(cellSelector)];
-        }
-      },
-      rowIndex: {
-        get(){
-          return rowElement.rowIndex !== void 0 ? rowElement.rowIndex : [...grid.querySelectorAll(rowSelector)].indexOf(rowElement);
-        }
-      },
-      element: {value: rowElement}
-    });
-  }
-
-  const cellProto = {
-    moveRight(){
-      const row = createRow(findContainer(this.element, rowSelector));
-      const rowCells = row.cells;
-      const cellIndex = this.cellIndex;
-      const newIndex = Math.min(rowCells.length - 1, cellIndex + 1);
-      const newCell = rowCells[newIndex];
-      if (doesSkipKeyboard(newCell) === false) {
-        return newCell;
-      } else if (newIndex === rowCells.length - 1) {
-        return this.element;
-      } else {
-        return createCell(newCell).moveRight();
-      }
-    },
-    moveLeft(){
-      const row = createRow(findContainer(this.element, rowSelector));
-      const rowCells = row.cells;
-      const cellIndex = this.cellIndex;
-      const newIndex = Math.max(0, cellIndex - 1);
-      const newCell = rowCells[newIndex];
-      if (doesSkipKeyboard(newCell) === false) {
-        return newCell;
-      } else if (newIndex === 0) {
-        return this.element;
-      } else {
-        return createCell(newCell).moveLeft();
-      }
-    }
-  };
-
-  const virtualCellProto = {
-    moveRight(){
-      if (this.currentIndex === this.virtualCells.length - 1) {
-        const newCell = createCell(this.cellElement).moveRight();
-        return newCell === this.cellElement ? this.element : newCell;
-      } else {
-        return this.virtualCells[this.currentIndex + 1];
-      }
-    },
-    moveLeft(){
-      if (this.currentIndex === 0) {
-        const newCell = createCell(this.cellElement).moveLeft();
-        return newCell === this.cellElement ? this.element : newCell;
-      } else {
-        return this.virtualCells[this.currentIndex - 1];
-      }
-    }
-  };
-
-  function createCell (cellElement) {
-    const row = findContainer(cellElement, rowSelector);
-    return Object.create(cellProto, {
-      cellIndex: {
-        get(){
-          return cellElement.cellIndex !== void 0 ? cellElement.cellIndex : [...row.querySelectorAll(cellSelector)].indexOf(cellElement);
-        }
-      },
-      element: {value: cellElement}
-    });
-  }
-
-  function createCompositeCell (cellElement, element) {
-    const selector = cellElement.getAttribute('data-keyboard-selector');
-    const virtualCells = [...cellElement.querySelectorAll(selector)];
-    const currentIndex = virtualCells.indexOf(element);
-    return Object.create(virtualCellProto, {
-      virtualCells: {value: virtualCells},
-      currentIndex: {value: currentIndex},
-      cellElement: {value: cellElement},
-      element: {value: element}
-    });
-  }
-
-  const moveRight = (target) => {
-    const cellElement = findContainer(target, cellSelector);
-    const cell = cellElement === target ? createCell(cellElement) : createCompositeCell(cellElement, target);
-    return cell.moveRight();
-  };
-
-  const moveLeft = target => {
-    const cellElement = findContainer(target, cellSelector);
-    const cell = cellElement === target ? createCell(cellElement) : createCompositeCell(cellElement, target);
-    return cell.moveLeft();
-  };
-
-  const moveUp = target => {
-    const cell = createCell(findContainer(target, cellSelector));
-    const row = createRow(findContainer(cell.element, rowSelector));
-    const cellIndex = cell.cellIndex;
-    const newRow = createRow(row.moveUp());
-    const newCell = newRow.cells[Math.min(newRow.cells.length - 1, cellIndex)];
-    return newCell.hasAttribute('data-keyboard-skip') === false ? newCell : createCell(newCell).moveLeft();
-  };
-
-  const moveDown = target => {
-    const cell = createCell(findContainer(target, cellSelector));
-    const row = createRow(findContainer(cell.element, rowSelector));
-    const cellIndex = cell.cellIndex;
-    const newRow = createRow(row.moveDown());
-    const newCell = newRow.cells[Math.min(newRow.cells.length - 1, cellIndex)];
-    return newCell.hasAttribute('data-keyboard-skip') === false ? newCell : createCell(newCell).moveLeft();
-  };
-
+function regularCell (element, {rowSelector, cellSelector}) {
+  const row = findContainer(element, rowSelector);
+  const cells = [...row.querySelectorAll(cellSelector)];
+  const index = cells.indexOf(element);
+  const returnEl = valFunc(element);
   return {
-    moveDown,
-    moveLeft,
-    moveUp,
-    moveRight
+    selectFromAfter: returnEl,
+    selectFromBefore: returnEl,
+    next(){
+      return cells[index + 1] !== void 0 ? cells[index + 1] : null;
+    },
+    previous(){
+      return cells[index - 1] !== void 0 ? cells[index - 1] : null;
+    }
+  }
+}
+
+function skipCell (element, options) {
+  const reg = regularCell(element, options);
+  return {
+    previous: reg.previous,
+    next: reg.next
+  }
+}
+
+function compositeCell (element, options) {
+  const cellElement = findContainer(element, options.cellSelector);
+  const selector = cellElement.getAttribute(dataSelectorAttribute);
+  const subWidgets = [...cellElement.querySelectorAll(selector)];
+  const widgetsLength = subWidgets.length;
+  const isSubWidget = element !== cellElement;
+  return {
+    selectFromBefore(){
+      return isSubWidget ? element : subWidgets[0];
+    },
+    selectFromAfter(){
+      return isSubWidget ? element : subWidgets[widgetsLength - 1];
+    },
+    next(){
+      const index = subWidgets.indexOf(element);
+      if (isSubWidget && index + 1 < widgetsLength) {
+        return subWidgets[index + 1];
+      } else {
+        return regularCell(cellElement, options).next();
+      }
+    },
+    previous(){
+      const index = subWidgets.indexOf(element);
+      if (isSubWidget && index > 0) {
+        return subWidgets[index - 1];
+      } else {
+        return regularCell(cellElement, options).previous();
+      }
+    }
+  }
+}
+
+function createCell (el, options) {
+  if (el === null) {
+    return null;
+  } else if (el.hasAttribute(dataSkipAttribute)) {
+    return skipCell(el, options);
+  } else if (el.hasAttribute(dataSelectorAttribute) || !el.matches(options.cellSelector)) {
+    return compositeCell(el, options);
+  } else {
+    return regularCell(el, options);
+  }
+}
+
+function regularRow (element, grid, {rowSelector = 'tr', cellSelector = 'th,td'}={}) {
+  const rows = [...grid.querySelectorAll(rowSelector)];
+  const cells = [...element.querySelectorAll(cellSelector)];
+  const index = rows.indexOf(element);
+  return {
+    previous(){
+      return rows[index - 1] !== void 0 ? rows[index - 1] : null;
+    },
+    next(){
+      return rows[index + 1] !== void 0 ? rows[index + 1] : null;
+    },
+    item(index){
+      return cells[index] !== void 0 ? cells[index] : null;
+    }
   };
 }
 
-function gridKeyMap (grid, {cellSelector = 'td,th', rowSelector = 'tr'} ={}) {
+function skipRow (element, grid, options) {
+  const regular = regularRow(element, grid, options);
+  return {
+    previous: regular.previous,
+    next: regular.next
+  };
+}
 
-  let lastFocused = null;
+function createRow (target, grid, {rowSelector, cellSelector}={}) {
+  if (target === null) {
+    return null;
+  }
+  const r = findContainer(target, rowSelector);
+  return r.hasAttribute(dataSkipAttribute) ? skipRow(r, grid, {
+      rowSelector,
+      cellSelector
+    }) : regularRow(target, grid, {rowSelector, cellSelector});
+}
 
-  const kg = keyGrid(grid, {cellSelector, rowSelector});
-
-  grid.addEventListener('keydown', (ev) => {
-    const {target, keyCode} =ev;
-    let newFocused = null;
-    if (keyCode === 37) {//left
-      newFocused = kg.moveLeft(target);
-    } else if (keyCode === 38) {//up
-      newFocused = kg.moveUp(target);
-    } else if (keyCode === 39) {//right
-      newFocused = kg.moveRight(target);
-    } else if (keyCode === 40) {//down
-      newFocused = kg.moveDown(target);
-    }
-    if (newFocused !== null) {
-      if (lastFocused !== null) {
-        lastFocused.setAttribute('tabindex', '-1');
+function keyGrid (grid, options) {
+  const {rowSelector, cellSelector} = options;
+  return {
+    moveRight(target){
+      const cell = createCell(target, options);
+      let newCell = createCell(cell.next(), options);
+      while (newCell !== null && newCell.selectFromBefore === void 0) {
+        newCell = createCell(newCell.next(), options);
       }
-      newFocused.focus();
-      newFocused.setAttribute('tabindex', '0');
-      lastFocused = newFocused;
+      return newCell !== null ? newCell.selectFromBefore() : target;
+    },
+    moveLeft(target){
+      const cell = createCell(target, options);
+      let newCell = createCell(cell.previous(), options);
+      while (newCell !== null && newCell.selectFromAfter === void 0) {
+        newCell = createCell(newCell.previous(), options);
+      }
+      return newCell !== null ? newCell.selectFromAfter() : target;
+    },
+    moveUp(target){
+      const rowElement = findContainer(target, rowSelector);
+      const cells = [...rowElement.querySelectorAll(cellSelector)];
+      const row = createRow(rowElement, grid, options);
+      let newRow = createRow(row.previous(), grid, options);
+      while (newRow !== null && newRow.item === void 0) {
+        newRow = createRow(newRow.previous(), grid, options);
+      }
+
+      if (newRow === null) {
+        return target;
+      }
+
+      let askedIndex = cells.indexOf(findContainer(target, cellSelector));
+      let newCell = createCell(newRow.item(askedIndex), options);
+      while (newCell === null || newCell.selectFromBefore === void 0 && askedIndex > 0) {
+        askedIndex--;
+        newCell = createCell(newRow.item(askedIndex), options);
+      }
+      return newCell.selectFromBefore();
+    },
+    moveDown(target){
+      const rowElement = findContainer(target, rowSelector);
+      const cells = [...rowElement.querySelectorAll(cellSelector)];
+      const row = createRow(rowElement, grid, options);
+      let newRow = createRow(row.next(), grid, options);
+      while (newRow !== null && newRow.item === void 0) {
+        newRow = createRow(newRow.next(), grid, options);
+      }
+
+      if (newRow === null) {
+        return target;
+      }
+
+      let askedIndex = cells.indexOf(findContainer(target, cellSelector));
+      let newCell = createCell(newRow.item(askedIndex), options);
+      while (newCell === null || newCell.selectFromBefore === void 0 && askedIndex > 0) {
+        askedIndex--;
+        newCell = createCell(newRow.item(askedIndex), options);
+      }
+      return newCell.selectFromBefore();
+    }
+  }
+}
+
+var index = function (grid, {rowSelector = 'tr', cellSelector = 'td,th'}={}) {
+  let lastFocus = null;
+
+  const isNavigable = r => r.hasAttribute(dataSkipAttribute) === false;
+  const navigableRows = [...grid.querySelectorAll(rowSelector)].filter(isNavigable);
+  for (let row of navigableRows) {
+    const navigableCells = [...row.querySelectorAll(cellSelector)].filter(isNavigable);
+    for (let c of navigableCells) {
+      if (lastFocus === null) {
+        lastFocus = c;
+        c.setAttribute('tabindex', '0');
+      } else {
+        c.setAttribute('tabindex', '-1');
+      }
+    }
+  }
+
+  const kg = keyGrid(grid, {rowSelector, cellSelector});
+
+  grid.addEventListener('keydown', ({target, keyCode}) => {
+    let newCell = null;
+    if (keyCode === 37) {
+      newCell = kg.moveLeft(target);
+    } else if (keyCode === 38) {
+      newCell = kg.moveUp(target);
+    } else if (keyCode === 39) {
+      newCell = kg.moveRight(target);
+    } else if (keyCode === 40) {
+      newCell = kg.moveDown(target);
+    }
+
+    if (newCell !== null) {
+      newCell.focus();
+      if (lastFocus !== null) {
+        lastFocus.setAttribute('tabindex', '-1');
+      }
+      newCell.setAttribute('tabindex', '0');
+      lastFocus = newCell;
     }
   });
+};
 
-  let hasNotSkipAttribute = el => el.hasAttribute('data-keyboard-skip') === false;
-  const rows = Array.from(grid.querySelectorAll(rowSelector)).filter(hasNotSkipAttribute);
-  for (let r of rows) {
-    const cells = [...r.querySelectorAll(cellSelector)].filter(hasNotSkipAttribute);
-    for (let c of cells) {
-      if (lastFocused === null) {
-        lastFocused = c;
-      }
-      c.setAttribute('tabindex', '-1');
-    }
-  }
-
-  const cells = [...grid.querySelectorAll(cellSelector)];
-  const composites = cells.filter(c => c.hasAttribute('data-keyboard-selector') === true);
-  for (let c of composites) {
-    c.addEventListener('focus', ev => {
-      const selector = c.getAttribute('data-keyboard-selector');
-      const item = c.querySelector(selector);
-      item.focus();
-    });
-  }
-
-  lastFocused.setAttribute('tabindex', '0');
-}
-
-return gridKeyMap;
+return index;
 
 })));
 //# sourceMappingURL=smart-table-keyboard.js.map
