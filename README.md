@@ -65,5 +65,7 @@ You'll find more [examples](./examples) extracted from the [wai aria guide](http
 
 **reproducible bugs** only.
 
-## Licence MIT
+## Licence
+
+MIT
 
