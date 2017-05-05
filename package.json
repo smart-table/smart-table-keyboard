@@ -1,6 +1,6 @@
 {
   "name": "smart-table-keyboard",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "description": "provide keyboard navigation to widget implementing the grid pattern",
   "main": "./dist/smart-table-keyboard.js",
   "module": "./index.js",
