@@ -180,21 +180,6 @@ function keyGrid (grid, options) {
 
 var index = function (grid, {rowSelector = 'tr', cellSelector = 'td,th'}={}) {
   let lastFocus = null;
-
-  const isNavigable = r => r.hasAttribute(dataSkipAttribute) === false;
-  const navigableRows = [...grid.querySelectorAll(rowSelector)].filter(isNavigable);
-  for (let row of navigableRows) {
-    const navigableCells = [...row.querySelectorAll(cellSelector)].filter(isNavigable);
-    for (let c of navigableCells) {
-      if (lastFocus === null) {
-        lastFocus = c;
-        c.setAttribute('tabindex', '0');
-      } else {
-        c.setAttribute('tabindex', '-1');
-      }
-    }
-  }
-
   const kg = keyGrid(grid, {rowSelector, cellSelector});
 
   grid.addEventListener('keydown', ({target, keyCode}) => {
